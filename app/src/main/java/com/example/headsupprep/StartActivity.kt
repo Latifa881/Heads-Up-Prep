@@ -40,7 +40,7 @@ class StartActivity : AppCompatActivity() {
     lateinit var llCounter3to1: LinearLayout
     lateinit var soundSharedPreferences: SharedPreferences
     lateinit var scoreSharedPreferences: SharedPreferences
-    lateinit var tvHighScore:TextView
+    lateinit var tvHighScore: TextView
     var isGameActive = false
     var isNewGame = false
     var isSoundOn = true
@@ -69,11 +69,11 @@ class StartActivity : AppCompatActivity() {
         ivSound = findViewById(R.id.ivSound)
         tvCounter3to1 = findViewById(R.id.tvCounter3to1)
         llCounter3to1 = findViewById(R.id.llCounter3to1)
-        tvHighScore=findViewById(R.id.tvHighScore)
+        tvHighScore = findViewById(R.id.tvHighScore)
 
         updateState(-1)
         getCelebrities()
-        tvHighScore.setText("High Score:"+ getHighScore())
+        tvHighScore.setText("High Score:" + getHighScore())
         isSoundOn = getSoundPreference()
         if (getSoundPreference())//Sound is on
         {
@@ -83,18 +83,20 @@ class StartActivity : AppCompatActivity() {
         }
         btStart.setOnClickListener {
             updateState(0)
-            val sound=MediaPlayer.create(this@StartActivity, R.raw.countdown_sound)
-             object : CountDownTimer(3000, 1000) {
+            val sound = MediaPlayer.create(this@StartActivity, R.raw.countdown_sound)
+            object : CountDownTimer(3000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
-                    tvCounter3to1.setText("" + ((millisUntilFinished / 1000)+1))
-                    if(isSoundOn)
-                    { sound.start()}
+                    tvCounter3to1.setText("" + ((millisUntilFinished / 1000) + 1))
+                    if (isSoundOn) {
+                        sound.start()
+                    }
                 }
 
                 override fun onFinish() {
                     isNewGame = true
-                    if(isSoundOn)
-                    { sound.pause()}
+                    if (isSoundOn) {
+                        sound.pause()
+                    }
                     updateState(4)
                 }
             }.start()
@@ -191,15 +193,17 @@ class StartActivity : AppCompatActivity() {
                         sound.start()
                     }
                 }
+
                 override fun onFinish() {
-                    tvTimer.setText("Timer:${timerSeconds/100}")
+                    tvTimer.setText("Timer:--")
                     isGameActive = false
                     isNewGame = true
                     setHighScore()
-                    tvHighScore.setText("High Score:"+ getHighScore())
-                    counter=0
+                    tvHighScore.setText("High Score:" + getHighScore())
+                    counter = 0
                     sound.pause()
                     updateState(3)
+                    getCelebrities()
                 }
             }.start()
         }
@@ -222,6 +226,7 @@ class StartActivity : AppCompatActivity() {
                             val taboo1 = User.taboo1
                             val taboo2 = User.taboo2
                             val taboo3 = User.taboo3
+                            if(validName(name!!)){
                             details.add(
                                 Celebrity.CelebrityDetails(
                                     pk,
@@ -230,7 +235,7 @@ class StartActivity : AppCompatActivity() {
                                     taboo2,
                                     taboo3
                                 )
-                            )
+                            )}
                         }
                         details.shuffle()
                     }
@@ -292,6 +297,7 @@ class StartActivity : AppCompatActivity() {
                 llStart.visibility = View.VISIBLE
                 clMainGam.visibility = View.GONE
                 tvRotate.visibility = View.GONE
+                llCelebrity.visibility=View.GONE
                 llCounter3to1.visibility = View.GONE
             }
             4 -> {
@@ -328,10 +334,11 @@ class StartActivity : AppCompatActivity() {
         score = getHighScore()
 
         if (counter - 1 > score) {
-            scoreSharedPreferences = this.getSharedPreferences("HeadsUp Score", Context.MODE_PRIVATE)
+            scoreSharedPreferences =
+                this.getSharedPreferences("HeadsUp Score", Context.MODE_PRIVATE)
             // We can save data with the following code
             with(scoreSharedPreferences.edit()) {
-                putInt("High Score", counter-1)
+                putInt("High Score", counter - 1)
                 apply()
             }
 
@@ -342,7 +349,34 @@ class StartActivity : AppCompatActivity() {
         scoreSharedPreferences =
             this.getSharedPreferences("HeadsUp Score", Context.MODE_PRIVATE)
         var myScore =
-            scoreSharedPreferences.getInt("High Score",0) // --> retrieves data from Shared Preferences
+            scoreSharedPreferences.getInt(
+                "High Score",
+                0
+            ) // --> retrieves data from Shared Preferences
         return myScore
     }
+
+    fun validName(name: String): Boolean {
+        var count=0
+        var valid=true
+        when {
+            name.length <= 2 -> { //if celebrity name is less than 2 it will be rejected
+                valid= false
+            }
+            name.length > 2 -> {
+                val char = name[0]
+                for ((index, character) in name.withIndex()) {
+                    if (character == char) {
+                        count++
+                    }
+                }
+                if(count>3){ //To check if the name has 3 same digits ,name= aaa will be rejected
+                    valid=false
+                }
+            }
+        }
+        return valid
+    }
+
+
 }
