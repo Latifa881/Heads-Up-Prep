@@ -94,24 +94,27 @@
             android:layout_height="wrap_content"
             android:weightSum="2"
             android:orientation="horizontal">
-
+            <Button
+                android:id="@+id/btUpdateCelebrity"
+                android:layout_weight="1"
+                android:layout_marginRight="10dp"
+                android:backgroundTint="@color/green"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Update Celebrity" />
             <Button
                 android:id="@+id/btDeleteCelebrity"
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/holo_red_dark"
                 android:layout_gravity="center"
                 android:layout_marginRight="10dp"
 
                 android:text="Delete Celebrity" />
 
-            <Button
-                android:id="@+id/btUpdateCelebrity"
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Update Celebrity" />
+
         </LinearLayout>
     </LinearLayout>
 
@@ -122,6 +125,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:text="Back"
+        android:backgroundTint="@color/green"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

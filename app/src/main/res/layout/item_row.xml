@@ -8,7 +8,7 @@
 
 
     <LinearLayout
-        android:layout_width="320dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/round_layout"
         android:orientation="vertical">
@@ -61,6 +61,7 @@
                 android:id="@+id/tvTaboo1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:textColor="@color/white"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="7dp"
                 android:layout_weight="1"
@@ -88,6 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="5dp"
+                android:textColor="@color/white"
                 android:layout_marginTop="7dp"
                 android:layout_weight="1"
                 android:text="Taboo2"
@@ -114,6 +116,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="5dp"
+                android:textColor="@color/white"
                 android:layout_marginTop="7dp"
                 android:layout_weight="1"
                 android:text="Taboo3"

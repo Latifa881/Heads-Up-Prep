@@ -5,21 +5,27 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     lateinit var rvMain:RecyclerView
     lateinit var btAddCelebrity:Button
     lateinit var etCelebrityName:EditText
     lateinit var btSubmit:Button
+    lateinit var ivBack:ImageView
     val details = arrayListOf<Celebrity.CelebrityDetails>()
+    val searchArray = arrayListOf<Celebrity.CelebrityDetails>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,10 +34,14 @@ class MainActivity : AppCompatActivity() {
         btAddCelebrity=findViewById(R.id.btAddCelebrity)
         etCelebrityName=findViewById(R.id.etCelebrityName)
         btSubmit=findViewById(R.id.btSubmit)
-
-        rvMain.adapter = RecyclerViewAdapter(details)
+        ivBack=findViewById(R.id.ivBack)
+        rvMain.adapter = RecyclerViewAdapter(searchArray)
         rvMain.layoutManager = LinearLayoutManager(applicationContext)
         getDetails()
+        ivBack.setOnClickListener {
+            val intent= Intent(this,StartActivity::class.java)
+            startActivity(intent)
+        }
 
         btAddCelebrity.setOnClickListener {
             val intent= Intent(this,AddCelebrityActivity::class.java)
@@ -71,6 +81,7 @@ class MainActivity : AppCompatActivity() {
                         val taboo3=User.taboo3
                         details.add(Celebrity.CelebrityDetails(pk,name,taboo1,taboo2,taboo3))
                     }
+                    searchArray.addAll(details)
                     rvMain.adapter!!.notifyDataSetChanged()
 
                 }
@@ -105,4 +116,39 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        val menuItem = menu?.findItem(R.id.search_action)
+
+        if (menuItem != null) {
+            val searchItem = menuItem.actionView as SearchView
+            searchItem.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    if (newText!!.isNotEmpty()) {
+                        searchArray.clear()
+                        val search = newText!!.toLowerCase(Locale.getDefault())
+                        details.forEach {
+                            if (it.name?.toLowerCase(Locale.getDefault()).toString()
+                                    .contains(search)
+                            ) {
+                                searchArray.add(it)
+                            }
+                        }
+                        rvMain.adapter!!.notifyDataSetChanged()
+                    } else {
+                        searchArray.clear()
+                        searchArray.addAll(details)
+                        rvMain.adapter!!.notifyDataSetChanged()
+                    }
+                    return true
+                }
+            })
+        }
+        return true
+    }
+
 }
