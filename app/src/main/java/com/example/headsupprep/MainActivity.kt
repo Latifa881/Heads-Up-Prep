@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var btSubmit:Button
     lateinit var ivBack:ImageView
     val details = arrayListOf<Celebrity.CelebrityDetails>()
+    val detailsBD = arrayListOf<CelebrityData>()
+    val searchArrayBD = arrayListOf<CelebrityData>()
     val searchArray = arrayListOf<Celebrity.CelebrityDetails>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,9 +37,9 @@ class MainActivity : AppCompatActivity() {
         etCelebrityName=findViewById(R.id.etCelebrityName)
         btSubmit=findViewById(R.id.btSubmit)
         ivBack=findViewById(R.id.ivBack)
-        rvMain.adapter = RecyclerViewAdapter(searchArray)
+        rvMain.adapter = RecyclerViewAdapter(searchArrayBD)
         rvMain.layoutManager = LinearLayoutManager(applicationContext)
-        getDetails()
+        getDetailsFromDB()
         ivBack.setOnClickListener {
             val intent= Intent(this,StartActivity::class.java)
             startActivity(intent)
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         btSubmit.setOnClickListener {
            val name= etCelebrityName.text.toString()
             if(name.isNotEmpty()){
-                checkIfCelebrityNameExist()
+                checkIfCelebrityNameExistBD()
             }
             else{
                 Toast.makeText(this,"Enter a name",Toast.LENGTH_SHORT).show()
@@ -58,6 +60,33 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+   fun getDetailsFromDB(){
+       val dbHelper=DBHelper(applicationContext)
+       detailsBD.addAll( dbHelper.readData())
+       searchArrayBD.addAll(detailsBD)
+       rvMain.adapter!!.notifyDataSetChanged()
+   }
+    fun checkIfCelebrityNameExistBD(){
+        var celebrityName=""
+        var counter=0
+        for(celebrity in detailsBD)
+        {
+            //Toast.makeText(this, "${celebrity.name}  found", Toast.LENGTH_LONG).show()
+            if(etCelebrityName.text.toString().capitalize() == celebrity.name){
+                celebrityName = celebrity.name
+                val intent = Intent(applicationContext, UpdateDeleteActivity::class.java)
+                intent.putExtra("celebrityName", celebrityName)
+                startActivity(intent)
+                break
+            }
+            else{
+                counter++
+            }
+            if(counter==details.size){
+                Toast.makeText(this, "${etCelebrityName.text.toString().capitalize()} not found", Toast.LENGTH_LONG).show()
+            }
+
+        }    }
     fun getDetails() {
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setMessage("Please wait")
@@ -105,6 +134,7 @@ class MainActivity : AppCompatActivity() {
                 celebrityID = celebrity.pk.toString().toInt()
                 val intent = Intent(applicationContext, UpdateDeleteActivity::class.java)
                 intent.putExtra("celebrityID", celebrityID)
+
             //    Toast.makeText(this, "${celebrityID} ID", Toast.LENGTH_LONG).show()
                 startActivity(intent)
             }else{
@@ -130,18 +160,19 @@ class MainActivity : AppCompatActivity() {
                 override fun onQueryTextChange(newText: String?): Boolean {
                     if (newText!!.isNotEmpty()) {
                         searchArray.clear()
+                        searchArrayBD.clear()
                         val search = newText!!.toLowerCase(Locale.getDefault())
-                        details.forEach {
+                        detailsBD.forEach {
                             if (it.name?.toLowerCase(Locale.getDefault()).toString()
                                     .contains(search)
                             ) {
-                                searchArray.add(it)
+                                searchArrayBD.add(it)
                             }
                         }
                         rvMain.adapter!!.notifyDataSetChanged()
                     } else {
-                        searchArray.clear()
-                        searchArray.addAll(details)
+                        searchArrayBD.clear()
+                        searchArrayBD.addAll(detailsBD)
                         rvMain.adapter!!.notifyDataSetChanged()
                     }
                     return true

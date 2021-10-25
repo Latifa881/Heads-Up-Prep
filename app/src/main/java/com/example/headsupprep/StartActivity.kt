@@ -13,15 +13,13 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import org.w3c.dom.Text
 import pl.droidsonroids.gif.GifImageView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.concurrent.timer
 
 class StartActivity : AppCompatActivity() {
-    //
+    private val dbHelper by lazy {  DBHelper(applicationContext)}
     lateinit var btStart: GifImageView
     lateinit var llStart: LinearLayout
     lateinit var tvTimer: TextView
@@ -49,6 +47,7 @@ class StartActivity : AppCompatActivity() {
     var timerSeconds: Long = 60000 //60 seconds
     var toggle = true
     val details = arrayListOf<Celebrity.CelebrityDetails>()
+    var detailsFromDB = arrayListOf<CelebrityData>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start)
@@ -72,7 +71,7 @@ class StartActivity : AppCompatActivity() {
         tvHighScore = findViewById(R.id.tvHighScore)
 
         updateState(-1)
-        getCelebrities()
+        getCelebritiesFromDB()
         tvHighScore.setText("High Score:" + getHighScore())
         isSoundOn = getSoundPreference()
         if (getSoundPreference())//Sound is on
@@ -107,15 +106,19 @@ class StartActivity : AppCompatActivity() {
                 ivTimer.visibility = View.VISIBLE
                 ivEdit.visibility = View.VISIBLE
                 ivSound.visibility = View.VISIBLE
+                //Move from right to left
                 ivTimer.animate().xBy(0F).xBy(-120F)
                 ivEdit.animate().xBy(0F).xBy(-230F)
                 ivSound.animate().xBy(0F).xBy(-350F)
+
+               // .animate().xBy(0F).yBy(-240F) Bottom to Top
 
                 false
             } else {
                 ivTimer.visibility = View.GONE
                 ivEdit.visibility = View.GONE
                 ivSound.visibility = View.GONE
+                //Move from  left to right
                 ivTimer.animate().xBy(0F).xBy(120F)
                 ivEdit.animate().xBy(0F).xBy(230F)
                 ivSound.animate().xBy(0F).xBy(350F)
@@ -158,13 +161,11 @@ class StartActivity : AppCompatActivity() {
             }
 
         }
-
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
-            //  Toast.makeText(this, "Landscape", Toast.LENGTH_SHORT).show()
             if (isNewGame) {
                 playGame()
                 isNewGame = false
@@ -174,7 +175,6 @@ class StartActivity : AppCompatActivity() {
             }
 
         } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
-            //Toast.makeText(this, "PORTRAIT", Toast.LENGTH_SHORT).show()
             if (isGameActive) {
                 updateState(2)
             }
@@ -203,13 +203,13 @@ class StartActivity : AppCompatActivity() {
                     counter = 0
                     sound.pause()
                     updateState(3)
-                    getCelebrities()
+                    getCelebritiesFromDB() //Get new data
                 }
             }.start()
         }
     }
-
-    fun getCelebrities() {
+//read from API
+    fun getCelebritiesFromAPI() {
         val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
 
         if (apiInterface != null) {
@@ -226,16 +226,17 @@ class StartActivity : AppCompatActivity() {
                             val taboo1 = User.taboo1
                             val taboo2 = User.taboo2
                             val taboo3 = User.taboo3
-                            if(validName(name!!)){
-                            details.add(
-                                Celebrity.CelebrityDetails(
-                                    pk,
-                                    name,
-                                    taboo1,
-                                    taboo2,
-                                    taboo3
+                            if (validName(name!!)) {
+                                details.add(
+                                    Celebrity.CelebrityDetails(
+                                        pk,
+                                        name,
+                                        taboo1,
+                                        taboo2,
+                                        taboo3
+                                    )
                                 )
-                            )}
+                            }
                         }
                         details.shuffle()
                     }
@@ -248,6 +249,11 @@ class StartActivity : AppCompatActivity() {
                     }
                 })
         }
+    }
+    fun getCelebritiesFromDB(){
+        detailsFromDB.clear()
+        detailsFromDB.addAll(dbHelper.readData())
+        detailsFromDB.shuffle()
     }
 
     fun setCelebrityDetails() {
@@ -297,7 +303,7 @@ class StartActivity : AppCompatActivity() {
                 llStart.visibility = View.VISIBLE
                 clMainGam.visibility = View.GONE
                 tvRotate.visibility = View.GONE
-                llCelebrity.visibility=View.GONE
+                llCelebrity.visibility = View.GONE
                 llCounter3to1.visibility = View.GONE
             }
             4 -> {
@@ -357,23 +363,23 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun validName(name: String): Boolean {
-        var count=0
-        var valid=true
+        var count = 0
+        val symbols = "0123456789/?!:;%"
+        var valid = true
         when {
             name.length <= 2 -> { //if celebrity name is less than 2 it will be rejected
-                valid= false
+                valid = false
             }
             name.length > 2 -> {
-                val char = name[0]
-                for ((index, character) in name.withIndex()) {
-                    if (character == char) {
-                        count++
+                for (char in name) {//if the name has 4 or more repeated characters it will be rejected. Example: Asiaa Ahmed is rejected because A is used more than 3 times
+                    var count = name.filter { it.lowercase() == char.lowercase() }.count()
+                    if (count >= 4) {
+                        valid=false
                     }
                 }
-                if(count>3){ //To check if the name has 3 same digits ,name= aaa will be rejected
-                    valid=false
-                }
             }
+            name == "name" -> valid = false
+            name.any { it in symbols } -> valid = false
         }
         return valid
     }

@@ -11,6 +11,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class AddCelebrityActivity : AppCompatActivity() {
+
     lateinit var etCelebrityName:EditText
     lateinit var  etTaboo1:EditText
     lateinit var  etTaboo2:EditText
@@ -33,7 +34,9 @@ class AddCelebrityActivity : AppCompatActivity() {
             val taboo2=etTaboo2.text.toString()
             val taboo3=etTaboo3.text.toString()
             if(name.isNotEmpty()&& taboo1.isNotEmpty()&&taboo2.isNotEmpty()&&taboo3.isNotEmpty()){
-                addDetails(name,taboo1,taboo2, taboo3)
+               // addDetails(name,taboo1,taboo2, taboo3)
+                val dbHelper=DBHelper(applicationContext)
+                dbHelper.saveData(CelebrityData(name,taboo1, taboo2, taboo3))
             }else{
                 Toast.makeText(this,"Enter all the information",Toast.LENGTH_SHORT).show()
             }

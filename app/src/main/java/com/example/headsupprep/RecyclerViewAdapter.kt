@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_row.view.*
 
 class RecyclerViewAdapter(
-    val details: ArrayList<Celebrity.CelebrityDetails>
+    val details: ArrayList<CelebrityData>
 ) :
     RecyclerView.Adapter<RecyclerViewAdapter.ItemViewHolder>() {
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

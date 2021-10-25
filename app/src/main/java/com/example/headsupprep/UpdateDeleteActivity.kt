@@ -13,6 +13,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class UpdateDeleteActivity : AppCompatActivity() {
+    private val dbHelper by lazy { DBHelper(applicationContext) }
     lateinit var etCelebrityName: EditText
     lateinit var etTaboo1: EditText
     lateinit var etTaboo2: EditText
@@ -20,8 +21,9 @@ class UpdateDeleteActivity : AppCompatActivity() {
     lateinit var btBack: Button
     lateinit var btDeleteCelebrity: Button
     lateinit var btUpdateCelebrity: Button
-   // private val apiInterface by lazy { APIClient().getClient()?.create(APIInterface::class.java) }
-    var celebrityID = 0
+
+    // private val apiInterface by lazy { APIClient().getClient()?.create(APIInterface::class.java) }
+    var celebrityName = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_update_delete)
@@ -33,7 +35,7 @@ class UpdateDeleteActivity : AppCompatActivity() {
         btUpdateCelebrity = findViewById(R.id.btUpdateCelebrity)
         btDeleteCelebrity = findViewById(R.id.btDeleteCelebrity)
         btDeleteCelebrity.setOnClickListener {
-            conformationDialog(0, celebrityID)
+            conformationDialog(0, celebrityName)
         }
         btUpdateCelebrity.setOnClickListener {
             if (etCelebrityName.text.toString().isNotEmpty() &&
@@ -41,7 +43,7 @@ class UpdateDeleteActivity : AppCompatActivity() {
                 etTaboo2.text.toString().isNotEmpty() &&
                 etTaboo3.text.toString().isNotEmpty()
             ) {
-                conformationDialog(1, celebrityID)
+                conformationDialog(1, celebrityName)
             } else {
                 Toast.makeText(this, "Enter all the information", Toast.LENGTH_SHORT).show()
             }
@@ -51,42 +53,59 @@ class UpdateDeleteActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
-        val intent=getIntent()
-                celebrityID = intent.getIntExtra("celebrityID", 0)
-       // Toast.makeText(this, "${celebrityID}  ID yes", Toast.LENGTH_LONG).show()
-        getCelebrityDetails()
+        val intent = getIntent()
+        celebrityName = intent.getStringExtra("celebrityName").toString()
+        // Toast.makeText(this, "${celebrityID}  ID yes", Toast.LENGTH_LONG).show()
+        //getCelebrityDetails()
+        getCelebrityDetailsFromDB()
     }
 
-    fun getCelebrityDetails() {
-        val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
-        if (apiInterface != null) {
-            apiInterface.getOneCelebrityDetails(celebrityID).enqueue(object : Callback<Celebrity.CelebrityDetails> {
-                    override fun onResponse(
-                        call: Call<Celebrity.CelebrityDetails>,
-                        response: Response<Celebrity.CelebrityDetails>
-                    ) {
-                        val celebrity = response.body()!!
-
-                            etCelebrityName.setText(celebrity.name)
-                            etTaboo1.setText(celebrity.taboo1)
-                            etTaboo2.setText(celebrity.taboo2)
-                            etTaboo3.setText(celebrity.taboo3)
-
-                    }
-
-                    override fun onFailure(
-                        call: Call<Celebrity.CelebrityDetails>,
-                        t: Throwable
-                    ) {
-                        Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_SHORT).show()
-                        Log.d("HHHHHHHHH",t.toString())
-                        call.cancel()
-                    }
-
-                })
+    fun getCelebrityDetailsFromDB() {
+        val data = dbHelper.readData()
+        for (obj in data) {
+            if (obj.name.equals(celebrityName)) {
+                etCelebrityName.setText(obj.name)
+                etTaboo1.setText(obj.taboo1)
+                etTaboo2.setText(obj.taboo2)
+                etTaboo3.setText(obj.taboo3)
+                break
+            }
         }
+
     }
-    fun conformationDialog(code: Int, id: Int) {
+//    fun getCelebrityDetails() {
+//        val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
+//        if (apiInterface != null) {
+//
+//            apiInterface.getOneCelebrityDetails(celebrityID)
+//                .enqueue(object : Callback<Celebrity.CelebrityDetails> {
+//                    override fun onResponse(
+//                        call: Call<Celebrity.CelebrityDetails>,
+//                        response: Response<Celebrity.CelebrityDetails>
+//                    ) {
+//                        val celebrity = response.body()!!
+//
+//                        etCelebrityName.setText(celebrity.name)
+//                        etTaboo1.setText(celebrity.taboo1)
+//                        etTaboo2.setText(celebrity.taboo2)
+//                        etTaboo3.setText(celebrity.taboo3)
+//
+//                    }
+//
+//                    override fun onFailure(
+//                        call: Call<Celebrity.CelebrityDetails>,
+//                        t: Throwable
+//                    ) {
+//                        Toast.makeText(applicationContext, t.toString(), Toast.LENGTH_SHORT).show()
+//                        Log.d("HHHHHHHHH", t.toString())
+//                        call.cancel()
+//                    }
+//
+//                })
+//        }
+//    }
+
+    fun conformationDialog(code: Int, name: String) {
         //code: 0->Delete , 1->Update
         var text = ""
         var title = ""
@@ -111,15 +130,33 @@ class UpdateDeleteActivity : AppCompatActivity() {
 
         builder.setPositiveButton(text) { dialogInterface, which ->
             if (code == 0) {
-                delete(id)
+                dbHelper.deleteCelebrity(celebrityName)
+             //   delete(name)
+                Toast.makeText(applicationContext, "Deleted successfully!", Toast.LENGTH_SHORT)
+                    .show()
+                val intent = Intent(applicationContext, MainActivity::class.java)
+                startActivity(intent)
             } else if (code == 1) {
-                update(
-                    id,
-                    etCelebrityName.text.toString(),
-                    etTaboo1.text.toString(),
-                    etTaboo2.text.toString(),
-                    etTaboo3.text.toString()
+                dbHelper.updateCelebrity(
+                    CelebrityData(
+                        etCelebrityName.text.toString(),
+                        etTaboo1.text.toString(),
+                        etTaboo2.text.toString(),
+                        etTaboo3.text.toString()
+                    ),celebrityName
                 )
+                Toast.makeText(
+                    this@UpdateDeleteActivity,
+                    "Updated successfully!",
+                    Toast.LENGTH_SHORT
+                ).show()
+//                update(
+//                    id,
+//                    etCelebrityName.text.toString(),
+//                    etTaboo1.text.toString(),
+//                    etTaboo2.text.toString(),
+//                    etTaboo3.text.toString()
+//                )
             }
         }
 
@@ -130,6 +167,7 @@ class UpdateDeleteActivity : AppCompatActivity() {
         alertDialog.setCancelable(false)
         alertDialog.show()
     }
+
     fun update(id: Int, name: String, taboo1: String, taboo2: String, taboo3: String) {
         val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
         apiInterface?.updateCelebrityDetails(
@@ -158,13 +196,14 @@ class UpdateDeleteActivity : AppCompatActivity() {
 
 
     }
+
     fun delete(id: Int) {
         val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
         apiInterface?.deleteCelebrityDetails(id)?.enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 Toast.makeText(applicationContext, "Deleted successfully!", Toast.LENGTH_SHORT)
                     .show()
-                val intent= Intent(applicationContext,MainActivity::class.java)
+                val intent = Intent(applicationContext, MainActivity::class.java)
                 startActivity(intent)
 
             }
